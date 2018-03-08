@@ -1,0 +1,112 @@
+/*
+ * PCGen base build using the Gradle tool. This file specifies the core build tasks
+ * and refers to other files in the code/gradle directory for additional tasks
+ * for specific output.
+ *
+ * Developer build: gradle
+ * Incremental dev build: gradle build 
+ * Full build: gradle all 
+ */
+
+apply plugin: 'java'
+apply plugin: 'eclipse'
+apply plugin: "jacoco"
+
+group = 'net.sourceforge.pcgen'
+description = """Guice Testing"""
+
+defaultTasks 'clean', 'build'
+
+sourceCompatibility = 1.8
+
+ext {
+    majorVersion = 1
+    minorVersion = 0
+}
+
+repositories {
+    mavenCentral()
+    jcenter()
+    ivy {
+        name "Pcgen Repo"
+        url 'http://librepo.pcgen.org'
+    }
+    ivy {
+        name "tempRepo"
+        url 'http://52.90.171.70:8080/librepo/'
+    }
+}
+
+dependencies {
+    compile group: 'net.sourceforge.pcgen', name: 'PCGen-base', version:'1.0.128'
+    compile group: 'org.springframework', name: 'spring-core', version:'5.0.2.RELEASE'
+    compile group: 'org.springframework', name: 'spring-beans', version:'5.0.2.RELEASE'
+    compile group: 'org.springframework', name: 'spring-context', version:'5.0.2.RELEASE'
+    compile group: 'org.springframework', name: 'spring-context-annotation', version:'5.0.2.RELEASE'
+    compile group: 'javax.inject', name: 'javax.inject', version: '1'
+    
+
+    testCompile group: 'junit', name: 'junit', version: '4.+'
+}
+
+sourceSets {
+    main {
+        java {
+            srcDirs 'code/src/java'
+        }
+    }
+    test {
+        java {
+            srcDirs 'code/src/test'
+        }
+    }
+}
+
+def testSources = ['**/testsupport/**', '**/Abstract**TestCase', '**/*Test']
+
+test {
+    systemProperties 'property': 'value'
+}
+
+jacocoTestReport {
+    afterEvaluate {
+       	classDirectories = files(classDirectories.files.collect {fileTree(dir: it, exclude: testSources)})
+    }
+    reports {
+        html {
+            enabled true
+        }
+    }
+}
+
+// Calculate the version number - runs in the parse phase
+allprojects {
+    ext.buildTimestamp = new Date().format('yyyy-MM-dd HH:mm:ss Z')
+    if (System.env.BUILD_NUMBER) {
+        project.version = "$majorVersion.$minorVersion.$System.env.BUILD_NUMBER"
+    }
+    else {
+        project.version = "$majorVersion.$minorVersion"
+    }
+}
+
+task echoVer() doLast {
+    println "${project.name} Version: ${project.version} (${buildTimestamp})"
+}
+
+jar {
+    manifest {
+        attributes 'Implementation-Title': 'PCGenBaseLibrary', 'Implementation-Version': project.version, 
+            'Built-On': buildTimestamp 
+    }
+}
+
+task sourceJar(type: Jar) {
+    from sourceSets.main.java
+    classifier "sources"
+}
+
+task javadocJar(type: Jar, dependsOn: javadoc) {
+    classifier = 'javadoc'
+    from javadoc.destinationDir
+}
