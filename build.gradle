@@ -38,7 +38,7 @@ repositories {
 }
 
 dependencies {
-    compile group: 'net.sourceforge.pcgen', name: 'PCGen-base', version:'1.0.128'
+    compile group: 'net.sourceforge.pcgen', name: 'PCGen-base', version:'1.0.133'
     compile group: 'org.springframework', name: 'spring-core', version:'5.0.2.RELEASE'
     compile group: 'org.springframework', name: 'spring-beans', version:'5.0.2.RELEASE'
     compile group: 'org.springframework', name: 'spring-context', version:'5.0.2.RELEASE'
